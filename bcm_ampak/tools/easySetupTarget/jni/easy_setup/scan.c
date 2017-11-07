@@ -121,8 +121,8 @@ static int scan_and_get_security_internal(int ch, uint8* bssid, ssid_t* ssid) {
     if (bssid) {
         memcpy(&p.bssid, bssid, ETHER_ADDR_LEN);
     } else {
-        uint8 bcast[ETHER_ADDR_LEN] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
-        memcpy(&p.bssid, bcast, sizeof(bcast));
+        uint8 mcast[ETHER_ADDR_LEN] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
+        memcpy(&p.bssid, mcast, sizeof(mcast));
     }
 
     if (ssid) {
@@ -183,7 +183,45 @@ static int scan_and_get_security_internal(int ch, uint8* bssid, ssid_t* ssid) {
                 }
 
                 if (type == 48) {
-                    sec = WLAN_SECURITY_WPA2;
+                    uint8* pos = ie+2;
+                    int left = len;
+
+                    /* version */
+                    pos += 2;
+                    left -= 2;
+
+                    /* group cipher suite */
+                    pos += 4;
+                    left -= 4;
+
+                    /* pairwise cipher suite */
+                    uint16 count = *((uint16*) pos);
+                    printf("pairwise cipher count=%d\n", count);
+                    pos += 2;
+                    left -= 2;
+
+                    while (count--) {
+                        pos += 4;
+                        left -= 4;
+                    }
+
+                    /* key mgmt */
+                    count = *((uint16*) pos);
+                    printf("key mgmt count=%d\n", count);
+                    pos += 2;
+                    left -= 2;
+
+                    while (count--) {
+                        if (pos[3] == 1) {
+                            sec = WLAN_SECURITY_WPA2_8021X;
+                        } else {
+                            sec = WLAN_SECURITY_WPA2;
+                        }
+
+                        pos += 4;
+                        left -= 4;
+                    }
+
                     break;
                 }
 
@@ -192,7 +230,7 @@ static int scan_and_get_security_internal(int ch, uint8* bssid, ssid_t* ssid) {
             }
         }
 
-        if (sec != WLAN_SECURITY_WPA && sec != WLAN_SECURITY_WPA2) {
+        if (sec == -1) {
             if (cap & 0x10) {
                 sec = WLAN_SECURITY_WEP;
             } else {

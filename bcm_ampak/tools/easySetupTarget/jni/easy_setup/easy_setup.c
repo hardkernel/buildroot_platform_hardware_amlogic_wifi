@@ -1,16 +1,17 @@
 #include "easy_setup.h"
 
-#include "bcast.h"
+#include "mcast.h"
 #include "neeze.h"
 #include "akiss.h"
 #include "changhong.h"
 #include "jingdong.h"
 #include "jd.h"
+#include "ap.h"
 #include "xiaoyi.h"
 
 extern uint16 g_protocol_mask;
 
-void easy_setup_enable_bcast() {
+void easy_setup_enable_mcast() {
     g_protocol_mask |= (1<<EASY_SETUP_PROTO_BCAST);
 }
 
@@ -50,8 +51,8 @@ void easy_setup_get_param(uint16 proto_mask, tlv_t** pptr) {
             t->type = i;
 
             if (i==EASY_SETUP_PROTO_BCAST) {
-                t->length = sizeof(bcast_param_t);
-                bcast_get_param(t->value);
+                t->length = sizeof(mcast_param_t);
+                mcast_get_param(t->value);
             } else if (i==EASY_SETUP_PROTO_NEEZE) {
                 t->length = sizeof(neeze_param_t);
                 neeze_get_param(t->value);
@@ -64,6 +65,9 @@ void easy_setup_get_param(uint16 proto_mask, tlv_t** pptr) {
             } else if (i==EASY_SETUP_PROTO_JD) {
                 t->length = sizeof(jd_param_t);
                 jd_get_param(t->value);
+            } else if (i==EASY_SETUP_PROTO_AP) {
+                t->length = sizeof(ap_param_t);
+                ap_get_param(t->value);
             } else {
                 t->length = 0;
             }
@@ -77,7 +81,7 @@ void easy_setup_get_param(uint16 proto_mask, tlv_t** pptr) {
 
 void easy_setup_set_result(uint8 protocol, void* p) {
     if (protocol == EASY_SETUP_PROTO_BCAST) {
-        bcast_set_result(p);
+        mcast_set_result(p);
     } else if (protocol == EASY_SETUP_PROTO_NEEZE) {
         neeze_set_result(p);
     } else if (protocol == EASY_SETUP_PROTO_AKISS) {
@@ -90,6 +94,8 @@ void easy_setup_set_result(uint8 protocol, void* p) {
         jd_set_result(p);
     } else if (protocol == EASY_SETUP_PROTO_XIAOYI) {
         xiaoyi_set_result(p);
+    } else if (protocol == EASY_SETUP_PROTO_AP) {
+        ap_set_result(p);
     } else {
         ;// nothing done
     }

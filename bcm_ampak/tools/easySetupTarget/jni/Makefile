@@ -1,6 +1,6 @@
 CC ?= gcc
 
-src_list := main_linux.c easy_setup_linux.c easy_setup/easy_setup.c easy_setup/scan.c proto/bcast.c proto/neeze.c proto/akiss.c proto/changhong.c proto/jingdong.c proto/jd.c proto/xiaoyi.c
+src_list := main_linux.c easy_setup_linux.c easy_setup/easy_setup.c easy_setup/scan.c proto/mcast.c proto/neeze.c proto/akiss.c proto/changhong.c proto/jingdong.c proto/jd.c proto/xiaoyi.c proto/ap.c
 obj_list := $(src_list:%.c=%.o)
 
 CFLAGS := -Ieasy_setup -Iproto

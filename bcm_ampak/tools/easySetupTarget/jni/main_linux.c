@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <unistd.h>
+#include <time.h>
 #include "easy_setup.h"
 #include <signal.h>
 
@@ -10,14 +11,17 @@ void usage() {
     printf("-h: show help message\n");
     printf("-d: show debug message\n");
     printf("-k <v>: set 16-char key for all protocols\n");
+    printf("-t <v>: easy_setup query timeout, default 60\n");
+    printf("-n <v>: ap ssid, default: es\n");
     printf("-p <v>: bitmask of protocols to enable\n");
-    printf("  0x%04x - bcast\n", 1<<EASY_SETUP_PROTO_BCAST);
+    printf("  0x%04x - mcast\n", 1<<EASY_SETUP_PROTO_BCAST);
     printf("  0x%04x - neeze\n", 1<<EASY_SETUP_PROTO_NEEZE);
     printf("  0x%04x - Air Kiss\n", 1<<EASY_SETUP_PROTO_AKISS);
     printf("  0x%04x - Xiaoyi\n", 1<<EASY_SETUP_PROTO_XIAOYI);
     printf("  0x%04x - changhong\n", 1<<EASY_SETUP_PROTO_CHANGHONG);
     printf("  0x%04x - jingdong\n", 1<<EASY_SETUP_PROTO_JINGDONG);
     printf("  0x%04x - jd JoyLink\n", 1<<EASY_SETUP_PROTO_JD);
+    printf("  0x%04x - AP\n", 1<<EASY_SETUP_PROTO_AP);
 }
 
 static void signal_handler(int sig) {
@@ -32,7 +36,7 @@ int main(int argc, char* argv[])
     uint16 val;
 
     for (;;) {
-        int c = getopt(argc, argv, "dhk:p:");
+        int c = getopt(argc, argv, "dhk:p:t:n:");
         if (c < 0) {
             break;
         }
@@ -42,17 +46,23 @@ int main(int argc, char* argv[])
                 debug_enable = 1;
                 break;
             case 'k':
-                bcast_set_key(optarg);
-                bcast_set_key_qqcon(optarg);
+                mcast_set_key(optarg);
                 neeze_set_key(optarg);
-                neeze_set_key_qqcon(optarg);
                 akiss_set_key(optarg);
                 jingdong_set_key(optarg);
                 jd_set_key(optarg);
+                ap_set_key(optarg);
                 break;
             case 'p':
                 sscanf(optarg, "%04x", (uint32*)&val);
                 easy_setup_enable_protocols(val);
+                break;
+            case 't':
+                sscanf(optarg, "%d", (uint32*)&val);
+                easy_setup_set_timeout(val);
+                break;
+            case 'n':
+                ap_set_ssid(optarg, strlen(optarg));
                 break;
             case 'h':
                 usage();
@@ -69,7 +79,8 @@ int main(int argc, char* argv[])
     ret = easy_setup_start();
     if (ret) return ret;
 
-    /* query for result, blocks until bcast comes or times out */
+    /* query for result, blocks until mcast comes or times out */
+    int start_time = clock();
     ret = easy_setup_query();
     if (!ret) {
         char ssid[33]; /* ssid of 32-char length, plus trailing '\0' */
@@ -90,13 +101,13 @@ int main(int argc, char* argv[])
             printf("failed getting protocol.\n");
         } else if (protocol == EASY_SETUP_PROTO_BCAST) {
             char ip[16]; /* ipv4 max length */
-            ret = bcast_get_sender_ip(ip, sizeof(ip));
+            ret = mcast_get_sender_ip(ip, sizeof(ip));
             if (!ret) {
                 printf("sender ip: %s\n", ip);
             }
 
             uint16 port;
-            ret = bcast_get_sender_port(&port);
+            ret = mcast_get_sender_port(&port);
             if (!ret) {
                 printf("sender port: %d\n", port);
             }
@@ -158,6 +169,18 @@ int main(int argc, char* argv[])
                 for (i=0; i<len; i++) printf("%02x ", buf[i]);
                 printf("\n");
             }
+        } else if (protocol == EASY_SETUP_PROTO_AP) {
+            char ip[16]; /* ipv4 max length */
+            ret = ap_get_sender_ip(ip, sizeof(ip));
+            if (!ret) {
+                printf("sender ip: %s\n", ip);
+            }
+
+            uint16 port;
+            ret = ap_get_sender_port(&port);
+            if (!ret) {
+                printf("sender port: %d\n", port);
+            }
         }
 
 #if 0
@@ -169,11 +192,14 @@ int main(int argc, char* argv[])
         }
         printf("security: ");
         if (ret == WLAN_SECURITY_WPA2) printf("wpa2\n");
+        else if (ret == WLAN_SECURITY_WPA2_8021X) printf("wpa2-802.1x\n");
         else if (ret == WLAN_SECURITY_WPA) printf("wpa\n");
         else if (ret == WLAN_SECURITY_WEP) printf("wep\n");
         else if (ret == WLAN_SECURITY_NONE) printf("none\n");
         else printf("wpa2");
 #endif
+
+        LOGD("time elapsed: %lus\n", (clock()-start_time)/CLOCKS_PER_SEC);
     }
 
     /* must do this! */

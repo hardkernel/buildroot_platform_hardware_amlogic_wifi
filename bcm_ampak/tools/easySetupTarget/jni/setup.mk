@@ -10,7 +10,7 @@
 
 NAME := App_easy_setup
 
-$(NAME)_SOURCES := main_rtos.c easy_setup_rtos.c easy_setup/easy_setup.c proto/bcast.c proto/neeze.c proto/akiss.c proto/changhong.c proto/jingdong.c proto/jd.c
+$(NAME)_SOURCES := main_rtos.c easy_setup_rtos.c easy_setup/easy_setup.c proto/mcast.c proto/neeze.c proto/akiss.c proto/changhong.c proto/jingdong.c proto/jd.c
 $(NAME)_INCLUDES := ./proto ./easy_setup
 
 

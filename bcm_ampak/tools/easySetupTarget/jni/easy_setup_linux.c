@@ -10,9 +10,9 @@
 #include <easy_setup.h>
 #include <scan.h>
 
-#define ES_TARGET_VERSION "v3.7.0"
+#define ES_TARGET_VERSION "v4.0.0"
 
-#define QUERY_TIMEOUT_MS (30*1000)
+//#define QUERY_TIMEOUT_MS (30*1000) /* replaced with easy_setup_timeout_s */
 #define QUERY_INTERVAL_MS (1000)
 
 #define WLAN_IFACE "wlan0"
@@ -23,13 +23,13 @@
 #define WLC_GET_VAR (262)
 #define WLC_SET_VAR (263)
 
-#define DEFAULT_PROTOCOL_MASK (0x3) /* bcast */
+#define DEFAULT_PROTOCOL_MASK (0x3) /* mcast */
 uint16 g_protocol_mask = 0; /* default no protocols enabled */
 
 /* Linux network driver ioctl encoding */
 typedef struct wl_ioctl {
     uint cmd;        /* common ioctl definition */
-    void *buf;       /* pointer to user buffer */
+    unsigned long long buf;       /* pointer to user buffer */
     uint len;        /* length of user buffer */
     unsigned char set;  /* 1=set IOCTL; 0=query IOCTL */
     uint used;       /* bytes read or written (optional) */
@@ -41,6 +41,12 @@ static uint8 g_debug = 0;
 static easy_setup_result_t g_result;
 static uint8 g_protocol = 0;
 extern int killed;
+static int easy_setup_timeout_s = 60; /* -1 stands for infinity */
+
+struct local_ifreq {
+    char name[IFNAMSIZ];
+    char data[IFNAMSIZ];
+};
 
 int easy_setup_start() {
     int i;
@@ -112,7 +118,7 @@ int easy_setup_stop() {
 /* query result is of tlv format
  * type = protocol shot
  * length = result length
- * value = bcast_result_t/akiss_result_t ... */
+ * value = mcast_result_t/akiss_result_t ... */
 int easy_setup_query() {
     int ret = 0;
     tlv_t* query = NULL;
@@ -130,8 +136,8 @@ int easy_setup_query() {
     }
     
     uint last_state = 0;
-    int tries = QUERY_TIMEOUT_MS/QUERY_INTERVAL_MS;
-    while (tries-- && !killed) {
+    int total_time_ms = 0;
+    while (!killed) {
         usleep(QUERY_INTERVAL_MS * 1000);
 
         ret = easy_setup_iovar(0, query, RESULT_MAX_LEN);
@@ -155,12 +161,15 @@ int easy_setup_query() {
                 }
             }
         }
-    }
 
-    if (tries <= 0) {
-        LOGE("easy setup query timed out.\n");
-        free(query);
-        return -1;
+        if (easy_setup_timeout_s > 0) {
+            total_time_ms += QUERY_INTERVAL_MS;
+            if (total_time_ms >= easy_setup_timeout_s*1000) {
+                LOGE("timeout (%d)\n", easy_setup_timeout_s);
+                free(query);
+                return -1;
+            }
+        }
     }
 
     free(query);
@@ -197,6 +206,7 @@ int easy_setup_iovar(int set, void* param, int size) {
 
 int easy_setup_ioctl(int cmd, int set, void* param, int size) {
     struct ifreq ifr;
+    struct local_ifreq lifr;
     wl_ioctl_t ioc;
     int ret = 0;
 
@@ -210,11 +220,12 @@ int easy_setup_ioctl(int cmd, int set, void* param, int size) {
     ioc.len = size;
     ioc.set = set;
 
-    strncpy(ifr.ifr_name, WLAN_IFACE, IFNAMSIZ);
-    ifr.ifr_name[IFNAMSIZ-1] = 0;
-    ifr.ifr_data = (caddr_t) &ioc;
+    strncpy(lifr.name, WLAN_IFACE, IFNAMSIZ);
+    lifr.name[IFNAMSIZ-1] = 0;
+	unsigned long long *llp = &lifr.data[0];
+    *llp = (unsigned long long) &ioc;
 
-    if ((ret = ioctl(g_ioc_fd, SIOCDEVPRIVATE, &ifr)) < 0) {
+    if ((ret = ioctl(g_ioc_fd, SIOCDEVPRIVATE, &lifr)) < 0) {
         /* log if not WLC_SCAN_RESULTS(51) */
         if (cmd != 51) {
             LOGD("easy setup ioctl(cmd=%d) failed: %d(%s)\n", 
@@ -224,6 +235,10 @@ int easy_setup_ioctl(int cmd, int set, void* param, int size) {
     }
 
     return 0;
+}
+
+void easy_setup_set_timeout(int s) {
+    easy_setup_timeout_s = s;
 }
 
 int easy_setup_get_ssid(char buff[], int buff_len) {

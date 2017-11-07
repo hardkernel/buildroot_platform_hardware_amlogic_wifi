@@ -1,5 +1,5 @@
-#ifndef __CHANGHONG_H__
-#define __CHANGHONG_H__
+#ifndef __XIAOYI_H__
+#define __XIAOYI_H__
 
 #include <easy_setup.h>
 

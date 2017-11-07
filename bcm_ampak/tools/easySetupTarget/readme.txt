@@ -9,18 +9,19 @@ Usage: (type setup -h)
 -d: show debug message
 -k <v>: set 16-char key for all protocols
 -p <v>: bitmask of protocols to enable
-  0x0001 - bcast
+  0x0001 - mcast
   0x0002 - neeze
   0x0004 - akiss
   0x0010 - changhong
   0x0020 - changhong
   0x0040 - jd JoyLink
+  0x0080 - softap
 
-To start bcast+neeze (also works for qqconnect):
+To start mcast+neeze (also works for qqconnect):
 # setup -p 3
 or just:
 # setup
-(default protocol combination will be bcast+neeze)
+(default protocol combination will be mcast+neeze)
 
 A sample output:
 # setup -p 1
@@ -74,7 +75,7 @@ Network up success
 
 * API
 You can enable various protocols with following APIs before calling easy_setup_start():
-easy_setup_enable_bcast();
+easy_setup_enable_mcast();
 easy_setup_enable_neeze();
 easy_setup_enable_akiss();
 easy_setup_enable_changhong();
@@ -84,8 +85,8 @@ easy_setup_enable_protocols(uint16 proto_mask);
 
 where proto_mask is bitmask of various protocols.
 
-For example, to start bcast+neeze+akiss:
-easy_setup_enable_bcast(); /* also works for qqconnect */
+For example, to start mcast+neeze+akiss:
+easy_setup_enable_mcast(); /* also works for qqconnect */
 easy_setup_enable_neeze(); /* included in new qqconnect */
 easy_setup_enable_akiss();
 easy_setup_start();
@@ -94,7 +95,7 @@ easy_setup_start();
 easy_setup_stop();
 
 if needed, you can set decryption key for various protocols:
-bcast_set_key("0123456789abcdef"); /* bcast decryption key */
+mcast_set_key("0123456789abcdef"); /* mcast decryption key */
 akiss_set_key("fedcba9876543210"); /* set akiss decryption key */
 
 With received ssid/password, it's time to feed it to wpa_supplicant:
@@ -117,23 +118,22 @@ network={
 }
 
 
-* About Broadcom ES (bcast+neeze) and QQ connect
+* About Broadcom ES (mcast+neeze) and QQ connect
 Both are supported in chip, but with different keys:
 
 (Broadcom demo)
-  <-- (enc(bcast_key, bcast_payload+neeze_payload)) --
+  <-- (enc(mcast_key, mcast_payload+neeze_payload)) --
 
 (Mobile QQ)
-  <-- (enc(bcast_key_qqcon, bcast_payload+neeze_payload)) --
+  <-- (enc(mcast_key_qqcon, mcast_payload+neeze_payload)) --
 
 With following setting in device, it's ready to receive both:
-easy_setup_enable_bcast();
+easy_setup_enable_mcast();
 easy_setup_enable_neeze();
-bcast_set_key(bcast_key); // if you have set bcast key in sender
-bcast_set_key_qqcon(bcast_key_qqcon); // key for qqcon
-neeze_set_key(bcast_key); // the same as bcast key, if you have set it
-neeze_set_key_qqcon(bcast_key_qqcon); // key for qqcon
 
+(set the key if needed)
+mcast_set_key(mcast_key); // if you have set mcast key in sender
+neeze_set_key(mcast_key); // the same as mcast key, if you have set it
 
 * Jingdong old and changhong
 Old jingdong and changhong are just the same, except jingdong has added encryption.
@@ -144,7 +144,14 @@ or:
 int changhong_get_sec_mode(&mode);
 
 * Jingdong JoyLink
-In the end of 2015, Jingdong has introduced this new mcast+bcast protocol. To enable it:
+In the end of 2015, Jingdong has introduced this new bcast+mcast protocol. To enable it:
     easy_setup_enable_jd();
 
 You can pass a 16-byte key with jd_set_key(). If it's shorter than 16, following bytes are zeroed.
+
+* ES+SOFTAP
+To start ES+SOFTAP, enable 0x80 in protocol bitmask. For example, to start neeze+softap with setup utility:
+  setup -p 0x83
+
+  By default, softap is created with SSID "es". We can change it:
+  setup -p 0x83 -n joyful

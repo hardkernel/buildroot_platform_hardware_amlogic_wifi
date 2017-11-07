@@ -67,3 +67,20 @@ changes:
 v3.7.0, 20160310
 changes:
     1. xiaoyi smartlink
+
+v3.7.1, 20170419
+changes:
+    1. rename bcast to mcast
+
+v4.0.0, 20170531
+changes:
+    1. add es+softap concurrency (refer to es+softap concurrency in readme.txt)
+    2. change default query timeout to 60s
+
+v4.1.0, 20170613
+changes:
+    1. change set_key/nonce API for mcast/neeze/ap
+
+v4.2.0, 20170714
+changes:
+    1. add API to receive ssid list in softap mode

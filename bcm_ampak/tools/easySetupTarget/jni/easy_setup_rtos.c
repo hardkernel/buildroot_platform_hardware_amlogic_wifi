@@ -58,7 +58,7 @@ do {\
 
 static const wwd_event_num_t easy_setup_events[] = { WLC_E_WAKE_EVENT, WLC_E_NONE };
 
-uint16_t g_protocol_mask = 0x3; /* bcast+neeze */
+uint16_t g_protocol_mask = 0x3; /* mcast+neeze */
 static uint8_t g_protocol = 0;
 
 static void* easy_setup_result_handler( const wwd_event_header_t* event_header, 

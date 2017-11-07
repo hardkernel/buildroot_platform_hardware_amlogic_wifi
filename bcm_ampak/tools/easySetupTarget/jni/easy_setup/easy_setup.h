@@ -11,6 +11,7 @@ enum {
     WLAN_SECURITY_WEP,
     WLAN_SECURITY_WPA,
     WLAN_SECURITY_WPA2,
+    WLAN_SECURITY_WPA2_8021X,
 };
 
 /* easy setup protocols */
@@ -22,6 +23,7 @@ enum {
     EASY_SETUP_PROTO_CHANGHONG,
     EASY_SETUP_PROTO_JINGDONG,
     EASY_SETUP_PROTO_JD,
+    EASY_SETUP_PROTO_AP,
     EASY_SETUP_PROTO_MAX,
 };
 
@@ -63,7 +65,7 @@ void easy_setup_set_result(uint8 protocol, void* p);
 int easy_setup_set_decrypt_key(char* key);
 
 /* enable easy setup protocols */
-void easy_setup_enable_bcast(); /* broadcom bcast */
+void easy_setup_enable_mcast(); /* broadcom mcast */
 void easy_setup_enable_neeze(); /* broadcom neeze */
 void easy_setup_enable_akiss(); /* wechat airkiss */
 void easy_setup_enable_qqcon(); /* qq connect */
@@ -72,7 +74,7 @@ void easy_setup_enable_jingdong(); /* changhong old smart link */
 void easy_setup_enable_jd(); /* jd joylink */
 
 /* enable protocols one time by bitmask
- * 0x0001 - bcast
+ * 0x0001 - mcast
  * 0x0002 - neeze
  * 0x0004 - airkiss
  * 0x0010 - changhong
@@ -104,6 +106,9 @@ int easy_setup_query();
 
 int easy_setup_iovar(int set, void* param, int size);
 int easy_setup_ioctl(int cmd, int set, void* param, int size);
+
+/* timeout_s: easy_setup query timeout in s */
+void easy_setup_set_timeout(int timeout_s);
 
 /* 
  * Get ssid. Call this after easy_setup_query() succeeds.

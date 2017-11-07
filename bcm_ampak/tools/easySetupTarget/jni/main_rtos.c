@@ -31,7 +31,7 @@
  */
 
 #include "wiced.h"
-#include "bcast.h"
+#include "mcast.h"
 #include "akiss.h"
 #include "changhong.h"
 #include "jingdong.h"
@@ -93,15 +93,15 @@ void application_start(void)
     wiced_init( );
 
     /* enable protocols */
-    easy_setup_enable_bcast(); /* broadcom bcast */
+    easy_setup_enable_mcast(); /* broadcom mcast */
     easy_setup_enable_neeze(); /* broadcom neeze */
     //easy_setup_enable_akiss(); /* wechat akiss */
     //easy_setup_enable_changhong(); /* changhong */
     //easy_setup_enable_jingdong(); /* jingdong */
     //easy_setup_enable_jd(); /* jd-joy */
 
-    /* set bcast key */
-    //bcast_set_key("1111111111111111");
+    /* set mcast key */
+    //mcast_set_key("1111111111111111");
 
     /* set airkiss key */
     //akiss_set_key("1111111111111111");

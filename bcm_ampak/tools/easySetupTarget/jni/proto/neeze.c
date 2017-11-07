@@ -3,18 +3,7 @@
 #include <neeze.h>
 
 static neeze_param_t g_neeze_param = {
-    .key_bytes = {
-        'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd', 
-        'a', 'b', 'c', 'd', 'a', 'b', 'c', 'd'},
-    .random_bytes = {
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x77, 0x69, 0x63, 0x65, 0x64},
-    .key_bytes_qqcon = {
-        'a', 'a', '6', 'b', 'c', '5', '1', '4', 
-        '-', '6', 'e', '7', '2', '-', '4', 'a'},
-    .random_bytes_qqcon = {
-        0x00, 0x00, 0x00, 0x00, 0x71, 0x71, 0x63, 0x6f, 
-        0x6e, 0x6e, 0x65, 0x63, 0x74},
+    .param_set = 0,
 };
 
 static neeze_result_t g_neeze_result;
@@ -28,19 +17,21 @@ void neeze_set_result(const void* p) {
 }
 
 int neeze_set_key(const char* key) {
-    int len = sizeof(g_neeze_param.key_bytes);
+    int len = sizeof(g_neeze_param.key);
     if (len > strlen(key))
         len = strlen(key);
-    memcpy(g_neeze_param.key_bytes, key, len);
+    memcpy(g_neeze_param.key, key, len);
+    g_neeze_param.param_set |= MCAST_PARAM_KEY;
 
     return 0;
 }
 
-int neeze_set_key_qqcon(const char* key) {
-    int len = sizeof(g_neeze_param.key_bytes_qqcon);
-    if (len > strlen(key))
-        len = strlen(key);
-    memcpy(g_neeze_param.key_bytes_qqcon, key, len);
+int neeze_set_nonce(const char* nonce) {
+    int len = sizeof(g_neeze_param.nonce);
+    if (len > strlen(nonce))
+        len = strlen(nonce);
+    memcpy(g_neeze_param.nonce, nonce, len);
+    g_neeze_param.param_set |= MCAST_PARAM_NONCE;
 
     return 0;
 }
@@ -64,7 +55,7 @@ int neeze_get_sender_ip(char buff[], int buff_len) {
             (ip>>16)&0xff,
             (ip>>8)&0xff,
             (ip>>0)&0xff);
-    ip_text[16-1] = 0;
+    ip_text[strlen(ip_text)] = 0;
 
     if ((size_t) buff_len < strlen(ip_text)+1) {
         LOGE("insufficient buffer provided: %d < %d\n", buff_len, strlen(ip_text)+1);
