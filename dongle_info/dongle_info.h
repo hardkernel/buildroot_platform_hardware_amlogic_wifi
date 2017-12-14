@@ -124,3 +124,7 @@ int mt7668_unload_driver();
 int bcm43569_load_driver();
 int search_bcm43569(unsigned  int vid,unsigned  int pid);
 int bcm43569_unload_driver();
+
+int rda5995_load_driver();
+int search_rda5995(unsigned  int vid,unsigned  int pid);
+int rda5995_unload_driver();
