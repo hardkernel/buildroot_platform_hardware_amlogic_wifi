@@ -14,6 +14,7 @@
 # limitations under the License.
 #
 LOCAL_PATH := $(call my-dir)
+ifeq ($(BOARD_WLAN_DEVICE),rda5995)
 
 ifeq ($(WPA_SUPPLICANT_VERSION),VER_0_8_X)
 
@@ -68,4 +69,5 @@ include $(BUILD_STATIC_LIBRARY)
 
 ########################
 
+endif
 endif

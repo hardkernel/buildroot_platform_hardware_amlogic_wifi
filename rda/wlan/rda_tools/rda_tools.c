@@ -7,6 +7,7 @@
 #include <net/if.h>
 #include<stdlib.h>
 #include <errno.h>
+#include<unistd.h>
 
 //#include "cutils/log.h"
 //#include "cutils/memory.h"
