@@ -50,6 +50,10 @@ ifeq ($(WIFI_DRIVER),AP6269)
     include $(call all-subdir-makefiles)
 endif
 
+ifeq ($(WIFI_DRIVER),AP62x8)
+    include $(call all-subdir-makefiles)
+endif
+
 ifeq ($(WIFI_DRIVER),AP6242)
     include $(call all-subdir-makefiles)
 endif
