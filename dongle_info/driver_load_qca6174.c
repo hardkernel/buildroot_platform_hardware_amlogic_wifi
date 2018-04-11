@@ -4,7 +4,7 @@
 static const char QCA6174_MODULE_NAME[]  = "wlan";
 static const char QCA6174_MODULE_TAG[]   = "wlan";
 static const char QCA6174_MODULE_PATH[]  = "/system/lib/wlan_6174.ko";
-static const char QCA6174_MODULE_ARG[]   = "";
+static const char QCA6174_MODULE_ARG[]   = "country_code=CN";
 
 int qca6174_load_driver()
 {
