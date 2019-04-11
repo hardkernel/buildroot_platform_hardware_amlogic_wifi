@@ -2,6 +2,10 @@
 # 2.4 GHz, 20 MHz BW mode
 
 # The following parameter values are just placeholders, need to be updated.
+
+ccode=CN
+regrev=38
+
 manfid=0x2d0
 prodid=0x0726
 vendid=0x14e4
